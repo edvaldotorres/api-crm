@@ -35,11 +35,14 @@ export class UsersService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+    this.userRepository.merge(user, updateUserDto);
+
+    return this.userRepository.save(user);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} user`;
+    return this.userRepository.softDelete(id);
   }
 }

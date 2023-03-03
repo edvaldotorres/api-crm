@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateDto } from 'src/common/dto/paginate.dto';
 import { Repository } from 'typeorm';
@@ -19,32 +15,24 @@ export class UsersService {
   ) {}
 
   create(createUserDto: CreateUserDto) {
-    try {
-      const user = this.userRepository.create(createUserDto);
-      return this.userRepository.save(user);
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(
-        'Não foi possível realizar cadastro, tente novamente mais tarde.',
-      );
-    }
+    const user = this.userRepository.create(createUserDto);
+    return this.userRepository.save(user);
   }
 
   findAll({ page = 1, limit = 10 }: PaginateDto) {
-    try {
-      return this.userRepository.find({
-        skip: (page - 1) * limit,
-        take: limit,
-      });
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Não foi possível fazer a listagem, tente novamente mais tarde.',
-      );
-    }
+    const users = this.userRepository.find({
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+
+    return users;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number) {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
